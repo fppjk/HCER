@@ -64,6 +64,6 @@ On the MSCOCO (5K test set), HCER demonstrates superior zero-shot retrieval capa
 
 ---
 
-## 开源声明 (Availability)
+## Availability
 
 **The source code will be made publicly available upon the acceptance of the paper.**
