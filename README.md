@@ -14,19 +14,6 @@ Extensive experiments on **Flickr30K** and **MSCOCO** demonstrate that HCER sign
 
 ---
 
-## Framework
-
-The project follows a **"Decomposition-Hierarchy-Verification"** paradigm, which consists of the following core steps:
-
-![HCER Framework Architecture](framework.png)
-
-*Fig. 1: Overall architecture of the HCER framework.*
-
-- **Semantic Decomposition**: Utilizes structured prompts to transform images into multi-view, atomic-level semantic descriptions.
-- **Hierarchical Contextual Embeddings (HCE)**: Mitigates semantic dilution in long descriptive sequences by effectively fusing local discriminative power with global contextual coherence.
-- **Reasoning-based Re-ranking**: Leverages Multimodal Large Language Models (MLLMs) to perform explicit logical consistency verification on Top-K candidates.
-
----
 
 ## Experimental Results
 
