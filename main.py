@@ -23,8 +23,8 @@ def main():
         "device": "cuda" if torch.cuda.is_available() else "cpu",
         
         # path configurations
-        "gt_path": "datasets/test_flickr30k.json",
-        "image_root": "data/testflickr",
+        "gt_path": "datasets/gt.json",# GT JSON file path
+        "image_root": "data/flickr",
         "output_base": "output",
         
         # model configurations
