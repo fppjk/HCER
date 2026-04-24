@@ -1,3 +1,8 @@
+'''
+NOTE: This is a partial/lite version of our research code.
+The full implementation for reproducing all experimental results 
+will be made public upon paper acceptance.
+'''
 import os
 import torch
 import gc
