@@ -4,14 +4,14 @@ import os
 
 def convert_coco_to_flickr_style(coco_json_path, image_prefix):
     """
-    将 COCO caption JSON 转换为 Flickr30K 风格格式。
+    Convert COCO caption JSON to Flickr30K style format.
     
-    参数：
+    Parameters:
     - coco_json_path: captions_train2014.json / captions_val2014.json
-    - image_prefix: 图像文件前缀，如 "COCO_train2014_" 或 "COCO_val2014_"
+    - image_prefix: image file prefix, e.g., "COCO_train2014_" or "COCO_val2014_"
     
-    返回：
-    - dataset: dict，键为图片文件名，值为 { raw:[], split:..., img_id:... }
+    Returns:
+    - dataset: dict, keys are image filenames, values are { raw:[], split:..., img_id:... }
     """
     with open(coco_json_path, "r", encoding="utf-8") as f:
         coco = json.load(f)
@@ -19,19 +19,19 @@ def convert_coco_to_flickr_style(coco_json_path, image_prefix):
     images = coco["images"]
     annotations = coco["annotations"]
 
-    # 1）建立 image_id → filename 映射
+    # 1) Build image_id -> filename mapping
     id_to_filename = {}
     for img in images:
         file_name = f"{image_prefix}{img['id']:012d}.jpg"
         id_to_filename[img["id"]] = file_name
 
-    # 2）建立 image_id → captions 映射
+    # 2) Build image_id -> captions mapping
     captions = {}
     for ann in annotations:
         img_id = ann["image_id"]
         captions.setdefault(img_id, []).append(ann["caption"])
 
-    # 3）构建输出格式
+    # 3) Build output format
     dataset = {}
     for img in images:
         img_id = img["id"]
@@ -39,7 +39,7 @@ def convert_coco_to_flickr_style(coco_json_path, image_prefix):
         file_name = f"{img_id:012d}.jpg"
 
         dataset[file_name] = {
-            "raw": captions.get(img_id, []),  # 有些可能没有 caption
+            "raw": captions.get(img_id, []),  # some may have no captions
             "split": "train" if "train" in image_prefix else "val",
             "img_id": img_id
         }
@@ -48,11 +48,11 @@ def convert_coco_to_flickr_style(coco_json_path, image_prefix):
 
 if __name__ == "__main__":
 
-    # ====== 修改为你的路径 ======
+    # ====== Change to your paths ======
     coco_train_json = "data/coco2017/annotations/captions_train2017.json"
     coco_val_json   = "data/coco2017/annotations/captions_val2017.json"
 
-    # ====== 生成 train 数据 ======
+    # ====== Generate train data ======
     # train_data = convert_coco_to_flickr_style(
     #     coco_json_path=coco_train_json,
     #     image_prefix="COCO_train2014_"
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     # with open("train_coco2017.json", "w", encoding="utf-8") as f:
     #     json.dump(train_data, f, indent=4, ensure_ascii=False)
 
-    # ====== 生成 val 数据 ======
+    # ====== Generate val data ======
     val_data = convert_coco_to_flickr_style(
         coco_json_path=coco_val_json,
         image_prefix="COCO_val2017_"
@@ -68,6 +68,6 @@ if __name__ == "__main__":
     with open("datasets/val_coco2017.json", "w", encoding="utf-8") as f:
         json.dump(val_data, f, indent=4, ensure_ascii=False)
 
-    print("转换完成！输出为：")
+    print("Conversion completed! Output:")
     # print(" - coco2014_train_flickr_style.json")
     print(" - coco2017_val_flickr_style.json")
