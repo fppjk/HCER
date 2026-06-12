@@ -8,8 +8,8 @@ from datetime import datetime
 
 from stage1_captioning import run_captioning 
 from stage2_HCE import CaptionRetrievalEvaluatorFast
-from stage3_i2t import QwenReranker
-from stage3_t2i import QwenRerankerT2I
+from stage3_Reranker_i2t import QwenReranker
+from stage3_Reranker_t2i import QwenRerankerT2I
 
 def clear_gpu_memory():
     gc.collect()
