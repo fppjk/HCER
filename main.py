@@ -1,8 +1,3 @@
-'''
-NOTE: This is a partial/lite version of our research code.
-The full implementation for reproducing all experimental results 
-will be made public upon paper acceptance.
-'''
 import os
 import torch
 import gc
@@ -17,7 +12,6 @@ from stage3_i2t import QwenReranker
 from stage3_t2i import QwenRerankerT2I
 
 def clear_gpu_memory():
-    """clear GPU memory to prevent OOM issues"""
     gc.collect()
     if torch.cuda.is_available():
         torch.cuda.empty_cache()
@@ -27,44 +21,45 @@ def main():
     CONFIG = {
         "device": "cuda" if torch.cuda.is_available() else "cpu",
         
-        # path configurations
-        "gt_path": "datasets/gt.json",# GT JSON file path
-        "image_root": "data/flickr",
-        "output_base": "output",
+        # FILE PATH
+        "gt_path": "datasets/test_flickr30k.json",
+        "image_root": "data/testflickr",
+        "output_base": "output/flickr",
         
-        # model configurations
+        # MODEL PATH
         "model_stage1": "Qwen/Qwen3-VL-4B-Instruct",
-        # "model_stage2": "Model/bge-large-en-v1.5",
-        'model_stage2': "Model/bge",# Word embedding model
+        "model_stage2": "Model/bge-large-en-v1.5",
+
         "model_stage3": "Qwen/Qwen3-VL-4B-Instruct",
         
         "top_k_images": 5,
 
-        # experiment parameters
-        # "top_k_coarse": 10,  
+        
+
         "top_k_rerank": 5,   # Top-K
     }
 
-    # auto-generated intermediate paths
+
     gen_caption_path = os.path.join(CONFIG["output_base"], "generated_captions_p5.json")
     matrix_output_i2t = os.path.join(CONFIG["output_base"], "matrix_output_i2t")
     matrix_output_t2i = os.path.join(CONFIG["output_base"], "matrix_output_t2i")
 
     os.makedirs(CONFIG["output_base"], exist_ok=True)
 
-    #  Step 1: Visual Semantic Decomposition
+    # Step 1: Visual Semantic Decomposition
     print("\n--- [Stage 1: Caption Generation] ---")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Stage1 Start Time: {now}")
-    # run_captioning("data/testflickr", "prompt.txt", gen_caption_path)
+    print(f"Stage1 START TIME: {now}")
+    # run_captioning("data/testflickr", "promptp5.txt", gen_caption_path)
     clear_gpu_memory() # free the memory
+    #
 
 
     # Step 2: HCE Strategy
     TOP_K_IMAGES = CONFIG["top_k_images"]
     print("\n--- [Stage 2: Coarse Retrieval & Evaluation] ---")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Stage2 Start Time: {now}")
+    print(f"Stage2 START TIME: {now}")
     evaluator = CaptionRetrievalEvaluatorFast(
         gt_path=CONFIG["gt_path"],
         gen_path=gen_caption_path,
@@ -77,9 +72,24 @@ def main():
     print(f"R@1 = {r1:.4f}")
     print(f"R@5 = {r5:.4f}")
     print(f"R@10 = {r10:.4f}")
+
+    # evaluator.export_correct_top_k_images(f"output/i2t_correct_top{TOP_K_IMAGES}_images.csv", k=TOP_K_IMAGES)
+
+    # evaluator.export_errors_top_k_images(f"output/i2t_errors_top{TOP_K_IMAGES}_images.csv", k=TOP_K_IMAGES)
+
+    # Similarity score statistical analysis
+    # score_stats = evaluator.analyze_scores(k=TOP_K_IMAGES)
+    # print("\n====== Top-1 Similarity Score Analysis ======")
+    # for key, value in score_stats.items():
+    #     print(f"--- {key} (Top-{TOP_K_IMAGES} boundary) ---")
+    #     print(f"  Count: {value['Count']}")
+    #     print(f"  Mean Top-1 Score: {value['Mean Score']:.4f}")
+    #     print(f"  Median Top-1 Score: {value['Median Score']:.4f}")
+    #     print(f"  Std Dev: {value['Std Dev']:.4f}")
+    #     print(f"  Range: [{value['Min Score']:.4f}, {value['Max Score']:.4f}]")
     # Save I2T similarity matrix
     # evaluator.save_sim_matrix(matrix_output_i2t)
-    evaluator.save_sim_matrix("output/matrix_output_i2t")
+    evaluator.save_sim_matrix("output/flickr/matrix_output_i2t")
 
     
     # Run T2I evaltion and save matrix (for T2I reranking)
@@ -89,8 +99,21 @@ def main():
     print(f"R@5 = {r5:.4f}")
     print(f"R@10 = {r10:.4f}")
 
+    # evaluator.export_t2i_correct_top_k_images(f"output/t2i_correct_top{TOP_K_IMAGES}_images.csv", k=TOP_K_IMAGES)
+
+    # evaluator.export_t2i_errors_top_k_images(f"output/t2i_errors_top{TOP_K_IMAGES}_images.csv", k=TOP_K_IMAGES)
+    # T2I Similarity score statistical analysis
+    # t2i_score_stats = evaluator.analyze_t2i_scores(k=TOP_K_IMAGES)
+    # print("\n====== T2I Top-1 Similarity Score Analysis ======")
+    # for key, value in t2i_score_stats.items():
+    #     print(f"--- {key} (Top-{TOP_K_IMAGES} boundary) ---")
+    #     print(f"  Count: {value['Count']}")
+    #     print(f"  Mean Top-1 Score: {value['Mean Score']:.4f}")
+    #     print(f"  Median Top-1 Score: {value['Median Score']:.4f}")
+    #     print(f"  Std Dev: {value['Std Dev']:.4f}")
+    #     print(f"  Range: [{value['Min Score']:.4f}, {value['Max Score']:.4f}]")
     # Save T2I similarity matrix
-    evaluator.save_sim_matrix("output/matrix_output_t2i")
+    evaluator.save_sim_matrix("output/flickr/matrix_output_t2i")
     # evaluator.save_sim_matrix(matrix_output_t2i)
     
     del evaluator
@@ -99,7 +122,7 @@ def main():
     # Step 3: I2T Reranking
     print("\n--- [Stage 3_1: I2T Reranking] ---")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Stage3_1 Start Time: {now}")
+    print(f"Stage3_1 START TIME: {now}")
     reranker_i2t = QwenReranker(
         output_dir=matrix_output_i2t,
         gt_path=CONFIG["gt_path"],
@@ -116,7 +139,7 @@ def main():
     # Step 4: T2I Reranking
     print("\n--- [Stage 3_2: T2I Reranking] ---")
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    print(f"Stage3_2 Start Time: {now}")
+    print(f"Stage3_2 START TIME: {now}")
     reranker_t2i = QwenRerankerT2I(
         output_dir=matrix_output_t2i,
         gt_path=CONFIG["gt_path"],
